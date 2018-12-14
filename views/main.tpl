@@ -56,6 +56,7 @@
         #result {
             min-height: 2em;
         }
+
         footer { position: fixed; bottom: 1ex; }
     </style>
 </head>
@@ -71,6 +72,8 @@
         <button class="cmd-btn btn" title="Play"><i class="icon-play"></i></button>
         <button class="cmd-btn btn" title="Stop"><i class="icon-stop"></i></button>
         <button class="cmd-btn btn" title="Next"><i class="icon-fast-forward"></i></button>
+        <button class="cmd-btn btn" title="Shuffle"><i class="icon-random"></i></button>
+        <button class="btn" id='rep-btn' ><i class="icon-refresh"></i></button>
     </span>
 
     <span class="btn-group">
@@ -80,8 +83,20 @@
     </span>
 
     <button class="status-btn btn btn-round" title="Update Status"><i class="icon-info-sign"></i></button>
-
+    <button class="btn btn-round" id='term_cmd' title="input terminal"><i class="icon-terminal"></i></button>
 </div>
+<div class="fb-share-button" data-href="http://ec2-34-220-238-40.us-west-2.compute.amazonaws.com/" data-layout="button" data-size="large" data-mobile-iframe="false">
+<a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fec2-34-220-238-40.us-west-2.compute.amazonaws.com%2F&amp;src=sdkpreparse" class="fb-xfbml-parse-ignore"><i class='icon-facebook-f'></i></a>
+</div>
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.0';
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
 <div id="result"></div>
 
@@ -92,6 +107,26 @@
 </div>
 <script src="/static/zepto.min.js"></script>
 <script type="text/javascript">
+    function runText(value){
+   	 $.ajax({type: 'POST', url: '/term', data: {val: value}, context: $("div#result"),
+	    error: function(){
+		var msg = '<p class="red lable"><i class="icon-remove"></i>' + value + '</p>';
+		this.html(msg)
+	    },
+	    success: function(){
+		var msg = '<p class="green label"><i class="icon-ok"></i>'+value+'</p>';
+	        this.html(msg)
+	    }})
+   }
+    function repeat(){
+	$.getJSON('/status',function(response){
+            if(response.repeat == 'true'){
+		runText('set repeat=false')	
+	    }else{
+		runText('set repeat=true')
+	    }
+	})
+    }
     function runCommand(command){
         $.ajax({type: 'POST', url: '/cmd', data: {command: command}, context: $("div#result"),
             error: function(){
@@ -138,8 +173,8 @@
     }))
     $(".cmd-btn").on('click', (function(){
         var cmd = $(this).attr('title');
-        runCommand(cmd);
-        updateStatus();
+        runCommand(cmd)
+        updateStatus()
     }))
     $("div#result").on('click', (function(){
         $(this).empty()
@@ -147,6 +182,19 @@
     Zepto(function() {
         updateStatus()
     })
+    $("#term_cmd").on('click',(function(){
+	
+	cmd=prompt("input cmus command, command in https://linux.die.net/man/1/cmus","");
+	
+	runText(cmd);
+	updateStatus();
+    }))
+    $("#rep-btn").on('click',(function(){
+	
+	repeat()
+	updateStatus()
+	updateStatus() //if delete one, updateStatus not function
+    }))
 </script>
 </body>
 </html>
